@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Louvre Password</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,12 +16,14 @@
 
   html, body {
     height: 100%;
+    height: 100dvh;
     background: #000;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     color: #fff;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow: hidden;
+    overscroll-behavior: none;
   }
 
   body {
@@ -230,6 +232,69 @@
 
   .toggle.on .toggle-thumb {
     transform: translateX(14px);
+  }
+
+  @media (max-width: 600px) {
+    .ambient {
+      width: 700px;
+      height: 700px;
+    }
+
+    .stage {
+      padding: 28px 24px;
+      max-width: 100%;
+    }
+
+    .title {
+      font-size: 34px;
+      margin-bottom: 36px;
+    }
+
+    .input {
+      padding: 20px 60px 20px 22px;
+      border-radius: 18px;
+      font-size: 24px;
+    }
+
+    .check {
+      right: 18px;
+      width: 30px;
+      height: 30px;
+    }
+
+    .check svg {
+      width: 18px;
+      height: 18px;
+      stroke-width: 3;
+    }
+
+    .success {
+      font-size: 64px;
+      letter-spacing: -0.03em;
+    }
+
+    .toggle {
+      bottom: max(16px, env(safe-area-inset-bottom));
+      right: 16px;
+      padding: 8px 12px;
+      font-size: 12px;
+    }
+
+    @keyframes burst {
+      0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) rotate(0);
+      }
+      100% {
+        opacity: 0;
+        transform:
+          translate(
+            calc(-50% + var(--tx)),
+            calc(-50% + var(--ty) + 500px)
+          )
+          rotate(var(--rot));
+      }
+    }
   }
 </style>
 </head>

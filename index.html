@@ -234,6 +234,42 @@
     transform: translateX(14px);
   }
 
+  .drop-image {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: var(--size);
+    height: var(--size);
+    border-radius: 50%;
+    object-fit: cover;
+    pointer-events: none;
+    z-index: 5;
+    will-change: transform, opacity;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(255,255,255,0.08);
+    filter: drop-shadow(0 8px 20px rgba(0,0,0,0.4));
+    animation: drop var(--duration) cubic-bezier(0.45, 0, 0.55, 1) forwards;
+  }
+
+  @keyframes drop {
+    0% {
+      opacity: 0;
+      transform: translate(var(--x), -30vh) rotate(var(--rot-start)) scale(0.6);
+    }
+    10% {
+      opacity: 1;
+    }
+    50% {
+      transform: translate(calc(var(--x) + var(--drift)), 45vh) rotate(calc(var(--rot-start) + var(--rot-end) * 0.5)) scale(1);
+    }
+    85% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      transform: translate(calc(var(--x) + var(--drift) * 1.2), 120vh) rotate(calc(var(--rot-start) + var(--rot-end))) scale(1);
+    }
+  }
+
   @media (max-width: 600px) {
     .ambient {
       width: 700px;
@@ -338,9 +374,15 @@
     const success = document.getElementById('success');
     const toggle = document.getElementById('effectsToggle');
 
+    const DROP_IMAGE_SRC = 'channels4_profile.jpg';
+    const DROP_DELAY_MS = 5000;
+    const DROP_SPAWN_INTERVAL_MS = 700;
+
     let celebrateTimer = null;
     let celebrated = false;
     let effectsEnabled = true;
+    let dropStartTimer = null;
+    let dropSpawnInterval = null;
 
     function launchConfetti() {
       const colors = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#ec4899', '#a855f7', '#ffffff', '#facc15'];
@@ -375,12 +417,66 @@
       document.querySelectorAll('.confetti-piece').forEach(p => p.remove());
     }
 
+    function spawnDropImage() {
+      const img = document.createElement('img');
+      img.className = 'drop-image';
+      img.src = DROP_IMAGE_SRC;
+      img.alt = '';
+      img.decoding = 'async';
+
+      const vw = window.innerWidth;
+      const size = 80 + Math.random() * 140;
+      const x = Math.random() * (vw - size);
+      const drift = (Math.random() - 0.5) * 220;
+      const rotStart = Math.random() * 360 - 180;
+      const rotEnd = (Math.random() * 720 - 360);
+      const duration = 4.5 + Math.random() * 2.5;
+
+      img.style.setProperty('--size', size + 'px');
+      img.style.setProperty('--x', x + 'px');
+      img.style.setProperty('--drift', drift + 'px');
+      img.style.setProperty('--rot-start', rotStart + 'deg');
+      img.style.setProperty('--rot-end', rotEnd + 'deg');
+      img.style.setProperty('--duration', duration + 's');
+
+      document.body.appendChild(img);
+      setTimeout(() => img.remove(), duration * 1000 + 200);
+    }
+
+    function startImageRain() {
+      stopImageRain();
+      spawnDropImage();
+      dropSpawnInterval = setInterval(() => {
+        if (!effectsEnabled || !celebrated) {
+          stopImageRain();
+          return;
+        }
+        spawnDropImage();
+      }, DROP_SPAWN_INTERVAL_MS);
+    }
+
+    function stopImageRain() {
+      if (dropSpawnInterval) {
+        clearInterval(dropSpawnInterval);
+        dropSpawnInterval = null;
+      }
+    }
+
+    function clearDropImages() {
+      document.querySelectorAll('.drop-image').forEach(p => p.remove());
+    }
+
     function celebrate() {
       if (!effectsEnabled || celebrated) return;
       celebrated = true;
       form.classList.add('hidden');
       success.classList.add('visible');
       launchConfetti();
+
+      clearTimeout(dropStartTimer);
+      dropStartTimer = setTimeout(() => {
+        if (effectsEnabled && celebrated) startImageRain();
+      }, DROP_DELAY_MS);
     }
 
     function reset() {
@@ -388,7 +484,10 @@
       form.classList.remove('hidden');
       success.classList.remove('visible');
       clearTimeout(celebrateTimer);
+      clearTimeout(dropStartTimer);
+      stopImageRain();
       clearConfetti();
+      clearDropImages();
     }
 
     input.addEventListener('input', () => {
